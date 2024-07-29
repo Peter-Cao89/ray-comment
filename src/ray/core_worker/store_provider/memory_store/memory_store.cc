@@ -114,11 +114,21 @@ bool GetRequest::Wait(int64_t timeout_ms) {
   return true;
 }
 
+// 这是一个准备的waits()函数，根据cppreference中的文档,下面函数的还可以进一步精简
+/**
+ * void waits() {
+ *   std::unique_lock locK(mutex_);
+ *   std::cerr << "Waiting... \n";
+ *   cv_.wait(lock, [] { return is_ready_; } );
+ *   std::cerr << "...finished waiting. is_ready_ == true\n";
+ * }
+ */
 void GetRequest::Wait() {
-  std::unique_lock<std::mutex> lock(mutex_);
+  std::unique_lock<std::mutex> lock(mutex_); /* 获取条件变量用的unique_lock */
   while (!is_ready_) {
     cv_.wait(lock);
   }
+  // 根据cppreference的注解，这相当于cv_.wait(lock, []{return is_ready_;})
 }
 
 void GetRequest::Set(const ObjectID &object_id, std::shared_ptr<RayObject> object) {
